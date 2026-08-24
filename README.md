@@ -70,6 +70,52 @@ These come from the engine repository's `CLAUDE.md` and apply the same way here.
 | --- | --- |
 | `EARLY_ACCESS_WEBHOOK_URL` | Where signups are forwarded (list, CRM, or function). **Until this is set, the form tells the visitor the signup is not connected and saves nothing** — it never shows a confirmation for a signup that went nowhere. |
 
+## Deploying to Plesk (Node.js hosting)
+
+This is a Next.js app, not static files. `/api/early-access` runs on the server, so the site
+needs a Node process — it cannot be dropped into an Apache document root.
+
+Plesk runs Node apps under Phusion Passenger, which wants a startup file rather than an
+`npm start` command. `server.js` is that file: it hands every request to the same Next.js
+handler `next start` uses.
+
+**In Plesk → Websites & Domains → your domain → Node.js:**
+
+| Field | Value |
+| --- | --- |
+| Node.js version | 20 or newer (Next 15 needs 18.18+) |
+| Application mode | `production` |
+| Application root | the folder holding this repo (for example `/httpdocs`) |
+| Document root | the same folder |
+| Application startup file | `server.js` |
+
+Then, in the same panel, add the environment variable:
+
+```
+EARLY_ACCESS_WEBHOOK_URL = <your list or CRM endpoint>
+```
+
+Leave it unset and the site still works — the signup form just tells visitors it is not
+connected rather than faking a confirmation.
+
+**Getting the code onto the server.** Websites & Domains → Git can pull this repository on
+each push. After every pull the app must be rebuilt, because a production Next.js server
+serves the compiled output in `.next` and will not start without it:
+
+```bash
+npm ci
+npm run build
+```
+
+Plesk's Node.js panel has buttons for both: *NPM install*, then *Run script* → `build`.
+Restart the app afterward.
+
+**Certificates.** Issue the Let's Encrypt certificate from Plesk with the `www` subdomain
+included, and select it under Hosting Settings → Security. Apache logs `AH01909: server
+certificate does NOT include an ID which matches the server name` whenever the domain's DNS
+does not yet resolve to this server — validation fails, no certificate is bound, and the
+default self-signed one is used instead. Fix DNS first, then issue.
+
 ## Still open
 
 - **Real player breakdowns.** The demo's percentages are illustrative and labeled as such.
