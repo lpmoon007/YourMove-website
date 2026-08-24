@@ -1,0 +1,24 @@
+# YourMove.world — CI.
+#
+# Two gates on every push: the copy checks pass, and the site compiles. The copy checks need
+# no network and no build, because every player-facing string lives in content/ as data.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
