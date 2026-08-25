@@ -5,7 +5,7 @@
 // reintroduced in a component fails the build the same as one reintroduced in content.
 
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
@@ -14,6 +14,8 @@ import { GENRES, DIFFICULTIES } from '../content/genres.js';
 import { PLAY_READINGS, HOW_YOU_PLAY_INTRO, CONTRADICTION } from '../content/play.js';
 import { BADGES, PROFILE_DISCLAIMER, WORLDS_PLAYED } from '../content/profile.js';
 import { FAQ, ROADMAP, SEVEN_LAYERS } from '../content/roadmap.js';
+import { HERO_OPENINGS } from '../content/hero.js';
+import { HERO_GENRES } from '../content/genres.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 
@@ -102,6 +104,54 @@ test('the Core Eight are all present, in the engine order', () => {
       'loyalty_opportunism',
     ],
   );
+});
+
+// ---------------------------------------------------------------------------------------
+// The hero.
+// ---------------------------------------------------------------------------------------
+
+test('every rotating backdrop has an opening written for it, and an image to show', () => {
+  for (const key of HERO_GENRES) {
+    const opening = HERO_OPENINGS.find((o) => o.genre === key);
+    assert.ok(opening, `${key} rotates in the hero with no opening written for it.`);
+    assert.ok(
+      opening.text.length > 200,
+      `The ${key} opening is too short to put a stranger inside a situation.`,
+    );
+    for (const asset of [`${key}-1000.webp`, `${key}-1935.webp`, `${key}-1935.jpg`]) {
+      assert.ok(
+        existsSync(join(ROOT, 'public/hero', asset)),
+        `${key} rotates in the hero but public/hero/${asset} is missing — run npm run images.`,
+      );
+    }
+  }
+});
+
+test('the hero copy lives in content, not in the component', () => {
+  // The 1777 opening shipped with one path costing nothing, and no test could see it, because
+  // it was hard-coded in Hero.tsx where nothing reads it alongside the other copy.
+  //
+  // Checking only that today's exact wording is absent is not enough — an earlier draft left
+  // behind would pass that and still be what visitors read. So look for prose of any kind.
+  const hero = readFileSync(join(ROOT, 'components/site/Hero.tsx'), 'utf8');
+
+  assert.ok(hero.includes('HERO_OPENINGS'), 'Hero.tsx does not take its copy from content/.');
+
+  const withoutComments = hero.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  // A JSX text node long enough to be a sentence is copy, and copy belongs in content/.
+  for (const [, text] of withoutComments.matchAll(/>([^<>{}]{60,})</g)) {
+    assert.fail(`Hero.tsx has copy inline: "${text.trim().slice(0, 60)}…"`);
+  }
+});
+
+test('the hero names nobody it has not introduced', () => {
+  // Nothing on this page has told the reader who anyone is, so a proper name is a stranger's
+  // name doing no work. Describe people by what a reader can picture instead.
+  const titled = /\b(Mr|Mrs|Ms|Dr|Sergeant|Corporal|Captain|Colonel|Major|Lieutenant|Detective|Officer)\.?\s+[A-Z][a-z]+/;
+  for (const opening of HERO_OPENINGS) {
+    const found = opening.text.match(titled);
+    assert.ok(!found, `The ${opening.genre} opening names "${found?.[0]}" without introducing them.`);
+  }
 });
 
 // ---------------------------------------------------------------------------------------

@@ -72,4 +72,5 @@ npm run build   # type-check + compile
 Both must pass before pushing. For anything a visitor reads, also run the site and look at
 the screen — green checks have never once proved that a page is comprehensible.
 
-Work on `claude/new-session-jve29i`.
+Work on `main`. `npm run publish` builds the site and pushes the `deploy` branch, which is
+what the web server pulls.

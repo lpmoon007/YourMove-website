@@ -3,14 +3,24 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GENRES, HERO_GENRES } from '@/content/genres';
+import {
+  HERO_EYEBROW,
+  HERO_OPENINGS,
+  HERO_REASSURANCE,
+  HERO_SUBHEAD,
+  HERO_TITLE,
+} from '@/content/hero';
 
 const INTERVAL_MS = 3400;
 
-/** Only the genres with photography behind them. */
+/** Each panel is a photograph, the genre label that names it, and the opening it illustrates.
+ *  Pairing them here means a backdrop can never drift out of step with the copy beside it. */
 const PANELS = HERO_GENRES.map((key) => {
   const genre = GENRES.find((g) => g.key === key);
   if (!genre) throw new Error(`HERO_GENRES names ${key}, which is not a genre.`);
-  return genre;
+  const opening = HERO_OPENINGS.find((o) => o.genre === key);
+  if (!opening) throw new Error(`No hero opening written for ${key}.`);
+  return { ...genre, opening: opening.text };
 });
 
 /** The rotating genre panel behind the hero.
@@ -86,27 +96,15 @@ export function Hero() {
 
       <div className="hero-inner">
         <p className="hero-eyebrow">
-          PLAYABLE / NOW &nbsp;·&nbsp; <span aria-live="polite">{active.label}</span>
+          {HERO_EYEBROW} &nbsp;·&nbsp; <span aria-live="polite">{active.label}</span>
         </p>
-        <h1>Your Move</h1>
-        <p className="hero-sub">The world changes. Your move.</p>
-        <p className="hero-para">
-          It&rsquo;s 1777, and a courier just handed you a letter naming a spy inside your own regiment. You recognize
-          the handwriting — it isn&rsquo;t the traitor&rsquo;s. Now you have to decide whether to expose the letter as a
-          forgery, or let an innocent man hang for it.
-        </p>
-        <p className="hero-para">
-          It&rsquo;s 1986 in Miami. The jewelry exchange on Ocean Drive was the biggest score of your career, and you
-          swore under oath you were home all night. Now a detective slides a photograph across the table — you, in the
-          vault&rsquo;s service alley, timestamped four minutes before the alarm tripped. What do you say?
-        </p>
-        <p className="hero-para">
-          It&rsquo;s 2028, three days after coordinated high-altitude EMP strikes took down the country&rsquo;s grid.
-          Your building&rsquo;s old diesel generator — no electronic ignition, nothing to fry — is one of the few things
-          still running, and it has six hours of fuel left to power either the water pump or the medical fridge holding
-          a neighbor&rsquo;s insulin. Forty people are asking which one you&rsquo;ll choose. You&rsquo;re not reading
-          about it. You&rsquo;re the one who has to decide.
-        </p>
+        <h1>{HERO_TITLE}</h1>
+        <p className="hero-sub">{HERO_SUBHEAD}</p>
+        {PANELS.map((g) => (
+          <p className="hero-para" key={g.key}>
+            {g.opening}
+          </p>
+        ))}
         <div className="hero-ctas">
           <Link href="#early-access" className="btn">
             Join Early Access
@@ -115,9 +113,7 @@ export function Hero() {
             See Where We&rsquo;re Going
           </Link>
         </div>
-        <p className="hero-note">
-          No predetermined path. No single right answer. No two stories have to end the same way.
-        </p>
+        <p className="hero-note">{HERO_REASSURANCE}</p>
       </div>
 
       <button type="button" className="hero-pause" onClick={() => setStopped((s) => !s)} aria-pressed={stopped}>
