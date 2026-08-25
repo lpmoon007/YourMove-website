@@ -12,7 +12,7 @@ its design, copy, and interaction intent.
 npm install
 npm run dev      # http://localhost:3000
 npm test         # the copy and structure checks — no network, no build needed
-npm run build    # type-check + compile
+npm run build    # type-check, compile, and write the static site to out/
 ```
 
 Both `npm test` and `npm run build` must pass before pushing. For anything a visitor reads,
@@ -23,9 +23,10 @@ also run it and look at the screen.
 ```
 app/                    routes: / , /where-were-going , /profile , /legal
 app/globals.css         the whole design system — tokens, both palettes, every class
-app/api/early-access/   the signup endpoint
+public/signup.php       the signup collector — the only server-side code on the site
 components/site/        chrome, the four interactive pieces, and the icon set
 content/                every player-facing string, as typed data
+out/                    the built site, committed because the server does not build
 tests/                  the checks that hold the line on that copy
 ```
 
@@ -60,7 +61,7 @@ These come from the engine repository's `CLAUDE.md` and apply the same way here.
 | --- | --- | --- |
 | Hero genre cycler | `components/site/Hero.tsx` | Crossfades seven genre panels every 3.4s. Pauses on hover, on focus, when the tab is hidden, on request, and under `prefers-reduced-motion`. |
 | 90-second demo | `components/site/ScenarioDemo.tsx` | Three scenarios, three moves each. Switching scenarios clears the prior choice. |
-| Early access | `components/site/EarlyAccess.tsx` | Multi-select chips, client-side email validation, then a real POST. |
+| Early access | `components/site/EarlyAccess.tsx` | Multi-select chips, client-side email validation, then a real POST to `signup.php`. |
 | How You Play | `components/site/HowYouPlay.tsx` | Eight dimensions, each opening onto its evidence. Independently toggleable. |
 | Dossier card | `components/site/DossierCard.tsx` | Draws the card to a canvas and downloads a real PNG. |
 
@@ -68,58 +69,67 @@ These come from the engine repository's `CLAUDE.md` and apply the same way here.
 
 | Variable | Effect |
 | --- | --- |
-| `EARLY_ACCESS_WEBHOOK_URL` | Where signups are forwarded (list, CRM, or function). **Until this is set, the form tells the visitor the signup is not connected and saves nothing** — it never shows a confirmation for a signup that went nowhere. |
+| `NEXT_PUBLIC_SIGNUP_ENDPOINT` | Where the signup form posts. Defaults to `/signup.php`. Read at build time — rebuild after changing it. |
 
-## Deploying to Plesk (Node.js hosting)
+## Deploying
 
-This is a Next.js app, not static files. `/api/early-access` runs on the server, so the site
-needs a Node process — it cannot be dropped into an Apache document root.
+The site is **static files**. `npm run build` writes `out/` — four pages of plain HTML plus
+CSS and JavaScript, about 1.3 MB. There is no Node process in production.
 
-Plesk runs Node apps under Phusion Passenger, which wants a startup file rather than an
-`npm start` command. `server.js` is that file: it hands every request to the same Next.js
-handler `next start` uses.
+`out/` is committed to this repository on purpose. The web server has no Node on it, so the
+build happens here and the server only ever pulls files.
 
-**In Plesk → Websites & Domains → your domain → Node.js:**
+**On Plesk:**
 
-| Field | Value |
-| --- | --- |
-| Node.js version | 20 or newer (Next 15 needs 18.18+) |
-| Application mode | `production` |
-| Application root | the folder holding this repo (for example `/httpdocs`) |
-| Document root | the same folder |
-| Application startup file | `server.js` |
+1. Websites & Domains → **Git** → add `https://github.com/lpmoon007/YourMove-website`,
+   branch `main`, deploying to `/httpdocs`.
+2. Websites & Domains → **Hosting Settings** → set **Document root** to `/httpdocs/out`.
 
-Then, in the same panel, add the environment variable:
+That second step matters. It keeps the source files out of the web root, so only the built
+site is reachable.
+
+After that, a `git pull` is the whole deployment. Nothing to install, nothing to build,
+nothing to restart.
+
+### Where signups go
+
+`public/signup.php` is copied into `out/` and is the one dynamic piece — PHP the server
+already runs, not Node. It appends each signup as a JSON line to:
 
 ```
-EARLY_ACCESS_WEBHOOK_URL = <your list or CRM endpoint>
+<one directory above the document root>/yourmove-signups/early-access.jsonl
 ```
 
-Leave it unset and the site still works — the signup form just tells visitors it is not
-connected rather than faking a confirmation.
+With the document root at `/httpdocs/out`, that is `/httpdocs/yourmove-signups/`. **Above the
+document root is the point** — the file holds email addresses, and anything inside the
+document root is a URL somebody can fetch. If the collector cannot find a private location it
+refuses to store anything rather than write addresses somewhere readable, and the form shows
+that refusal instead of a confirmation.
 
-**Getting the code onto the server.** Websites & Domains → Git can pull this repository on
-each push. After every pull the app must be rebuilt, because a production Next.js server
-serves the compiled output in `.next` and will not start without it:
+Read the signups over SFTP, or in Plesk's File Manager one level above the document root.
+The file is created mode `0600`; each line looks like:
 
-```bash
-npm ci
-npm run build
+```json
+{"email":"...","genres":["History"],"interests":["Solo play"],"at":"2026-08-25T01:54:19+00:00"}
 ```
 
-Plesk's Node.js panel has buttons for both: *NPM install*, then *Run script* → `build`.
-Restart the app afterward.
+To send signups to a CRM or mailing list instead, set `NEXT_PUBLIC_SIGNUP_ENDPOINT` to its
+URL and rebuild. The form posts the same JSON body and still shows whatever that endpoint
+actually returned.
 
-**Certificates.** Issue the Let's Encrypt certificate from Plesk with the `www` subdomain
-included, and select it under Hosting Settings → Security. Apache logs `AH01909: server
-certificate does NOT include an ID which matches the server name` whenever the domain's DNS
-does not yet resolve to this server — validation fails, no certificate is bound, and the
-default self-signed one is used instead. Fix DNS first, then issue.
+### Certificates
+
+Issue the Let's Encrypt certificate from Plesk with the `www` subdomain included. Apache logs
+`AH01909: server certificate does NOT include an ID which matches the server name` when the
+domain's DNS does not yet resolve to this server — validation fails, no certificate is bound,
+and the default self-signed one is used instead. Fix DNS first, then issue.
 
 ## Still open
 
 - **Real player breakdowns.** The demo's percentages are illustrative and labeled as such.
   Wire them to real aggregation, or remove the bars, before that label stops being true.
+- **Signups are a file, not a CRM.** Good enough to start collecting; move to
+  `NEXT_PUBLIC_SIGNUP_ENDPOINT` pointing at a real list before the first send.
 - **Photography and art direction.** v1 is deliberately graphic-only — inline SVG line work,
   no imagery. The original brief asks for cinematic full-bleed photography; that is a later
   pass, not a decision to skip imagery forever.

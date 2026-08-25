@@ -6,10 +6,17 @@
 # Node / Next.js
 node_modules/
 .next/
-out/
 dist/
 *.log
 .DS_Store
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# Collected early access signups, if the web server ever writes them inside the tree.
+# They are email addresses and do not belong in the repository.
+yourmove-signups/
+*.jsonl
+
+# NOTE: out/ is deliberately NOT ignored. It is the built site, and committing it is how
+# the server gets the files — there is no Node on the host to build them there.

@@ -210,8 +210,18 @@ test('American English throughout', () => {
 
 test('the signup form only confirms when the endpoint confirms', () => {
   const form = readFileSync(join(ROOT, 'components/site/EarlyAccess.tsx'), 'utf8');
-  assert.ok(form.includes("fetch('/api/early-access'"), 'the signup form does not reach a real endpoint.');
+  assert.ok(form.includes('fetch(ENDPOINT'), 'the signup form does not reach a real endpoint.');
   assert.ok(form.includes('body.ok'), 'the signup form confirms without waiting for the endpoint.');
+});
+
+test('the signup collector keeps addresses out of the document root', () => {
+  // Signups are email addresses. Anything under the document root is a URL someone can
+  // fetch, so the collector has to store them elsewhere — and refuse rather than fall back.
+  const php = readFileSync(join(ROOT, 'public/signup.php'), 'utf8');
+  assert.ok(php.includes('FILTER_VALIDATE_EMAIL'), 'the collector does not validate the address.');
+  assert.ok(php.includes('str_starts_with'), 'the collector does not check where it is writing.');
+  assert.ok(php.includes('LOCK_EX'), 'concurrent signups could interleave a line.');
+  assert.ok(!/echo\s+\$/.test(php), 'the collector echoes a variable back to the caller.');
 });
 
 test('the dossier button produces an actual file', () => {

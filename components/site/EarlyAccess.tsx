@@ -7,12 +7,17 @@ const INTEREST_CHIPS = ['Solo play', 'Multiplayer', 'Persistent worlds', 'Creato
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const ENDPOINT = process.env.NEXT_PUBLIC_SIGNUP_ENDPOINT || '/signup.php';
+
 /** Early access signup.
  *
- *  The chips are a personalization signal and never block the form. The email goes to a real
- *  endpoint — see app/api/early-access/route.ts. When no list is wired up, the endpoint says
- *  so and this form shows that instead of a confirmation, because a confirmation for a signup
- *  that went nowhere is a lie told to the person most willing to help. */
+ *  The chips are a personalization signal and never block the form. The email posts to a real
+ *  endpoint — by default `signup.php`, sitting next to these files on the web server. Point
+ *  NEXT_PUBLIC_SIGNUP_ENDPOINT at a CRM or mailing list to send signups there instead; it is
+ *  read at build time, so rebuild after changing it.
+ *
+ *  Whatever the endpoint, this form shows what it actually returned. A confirmation for a
+ *  signup that went nowhere is a lie told to the person most willing to help. */
 export function EarlyAccess() {
   const [genres, setGenres] = useState<string[]>([]);
   const [interests, setInterests] = useState<string[]>([]);
@@ -33,7 +38,7 @@ export function EarlyAccess() {
     setSending(true);
     setError(null);
     try {
-      const res = await fetch('/api/early-access', {
+      const res = await fetch(ENDPOINT, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ email, genres, interests }),
