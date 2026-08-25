@@ -2,14 +2,15 @@
   "name": "yourmove-website",
   "version": "0.1.0",
   "private": true,
-  "description": "YourMove.world — the marketing site for Your Move.",
+  "description": "YourMove.world \u2014 the marketing site for Your Move.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test tests/*.test.ts",
-    "test:copy": "tsx --test tests/*.test.ts"
+    "test:copy": "tsx --test tests/*.test.ts",
+    "publish": "bash scripts/publish.sh"
   },
   "dependencies": {
     "next": "^15.1.6",

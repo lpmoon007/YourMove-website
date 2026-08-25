@@ -6,6 +6,7 @@
 # Node / Next.js
 node_modules/
 .next/
+out/
 dist/
 *.log
 .DS_Store
@@ -18,5 +19,5 @@ dist/
 yourmove-signups/
 *.jsonl
 
-# NOTE: out/ is deliberately NOT ignored. It is the built site, and committing it is how
-# the server gets the files — there is no Node on the host to build them there.
+# The built site is not committed here. `npm run publish` builds it and pushes it to the
+# `deploy` branch, which is what the web server pulls.

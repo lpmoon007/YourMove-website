@@ -26,7 +26,7 @@ app/globals.css         the whole design system — tokens, both palettes, every
 public/signup.php       the signup collector — the only server-side code on the site
 components/site/        chrome, the four interactive pieces, and the icon set
 content/                every player-facing string, as typed data
-out/                    the built site, committed because the server does not build
+scripts/publish.sh      builds and pushes the deploy branch
 tests/                  the checks that hold the line on that copy
 ```
 
@@ -73,23 +73,34 @@ These come from the engine repository's `CLAUDE.md` and apply the same way here.
 
 ## Deploying
 
-The site is **static files**. `npm run build` writes `out/` — four pages of plain HTML plus
-CSS and JavaScript, about 1.3 MB. There is no Node process in production.
+Two branches:
 
-`out/` is committed to this repository on purpose. The web server has no Node on it, so the
-build happens here and the server only ever pulls files.
+| Branch | Holds | Who reads it |
+| --- | --- | --- |
+| `main` | source — what you edit | people |
+| `deploy` | the built site only: HTML, CSS, JS, `signup.php` | the web server |
 
-**On Plesk:**
+`deploy` exists so the server stays ordinary. Its document root is `httpdocs`, the same as
+every other site on the host — no per-site special case to rediscover in a year. The branch
+contains exactly what a browser needs and nothing else: no source, no `package.json`, no
+build step on the server.
 
-1. Websites & Domains → **Git** → add `https://github.com/lpmoon007/YourMove-website`,
-   branch `main`, deploying to `/httpdocs`.
-2. Websites & Domains → **Hosting Settings** → set **Document root** to `/httpdocs/out`.
+**To publish a change:**
 
-That second step matters. It keeps the source files out of the web root, so only the built
-site is reachable.
+```bash
+npm run publish     # tests, builds, and pushes the deploy branch
+```
 
-After that, a `git pull` is the whole deployment. Nothing to install, nothing to build,
-nothing to restart.
+Then in Plesk: **Git → Pull now → Deploy now**. That is the whole deployment.
+
+`npm run publish` refuses to run on a dirty working tree, runs the copy checks, rebuilds from
+scratch, verifies every page and `signup.php` are present in the output, and only then
+replaces the `deploy` branch. It builds in a temporary worktree, so your checkout is never
+touched. Never edit `deploy` by hand — the next publish overwrites it.
+
+**Plesk setup, once:** Websites & Domains → Git → repository
+`https://github.com/lpmoon007/YourMove-website`, branch **`deploy`**, deploying to
+`/httpdocs`. Leave the document root alone.
 
 ### Where signups go
 
@@ -100,13 +111,13 @@ already runs, not Node. It appends each signup as a JSON line to:
 <one directory above the document root>/yourmove-signups/early-access.jsonl
 ```
 
-With the document root at `/httpdocs/out`, that is `/httpdocs/yourmove-signups/`. **Above the
-document root is the point** — the file holds email addresses, and anything inside the
+With the document root at `/httpdocs`, that is one level above it. **Above the document root
+is the point** — the file holds email addresses, and anything inside the
 document root is a URL somebody can fetch. If the collector cannot find a private location it
 refuses to store anything rather than write addresses somewhere readable, and the form shows
 that refusal instead of a confirmation.
 
-Read the signups over SFTP, or in Plesk's File Manager one level above the document root.
+Read the signups over SFTP, or in Plesk's File Manager one level above `httpdocs`.
 The file is created mode `0600`; each line looks like:
 
 ```json
