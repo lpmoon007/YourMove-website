@@ -1,6 +1,6 @@
-// Every mark on this site is drawn, not photographed. The v1 art direction is deliberately
-// typographic and graphic: stroke-only line work, no fills, no stock imagery, nothing that
-// pretends to be a screenshot of a world that does not exist yet.
+// The small marks on this site are drawn, not photographed: stroke-only line work, no fills.
+// The hero is the exception — it carries real photography, one image per genre, because at
+// hero scale a line drawing reads as a placeholder rather than a choice.
 
 import type { GenreKey } from '@/content/genres';
 import type { BadgeIcon, WorldIcon } from '@/content/profile';
@@ -78,87 +78,6 @@ export function GenreIcon({ genre }: { genre: GenreKey }) {
         </svg>
       );
   }
-}
-
-/** The large panel that crossfades behind the hero. One per genre. */
-export function HeroPanel({ genre }: { genre: GenreKey }) {
-  const stroke = '#f4efe4';
-  const common = { fill: 'none', stroke, strokeWidth: 1.1 } as const;
-  return (
-    <svg width="560" height="360" viewBox="0 0 560 360" aria-hidden="true">
-      {genre === 'history' && (
-        <g {...common}>
-          <path d="M40 300 Q140 180 260 250 T520 120" strokeWidth="1.6" />
-          <path d="M40 330 Q160 250 300 300 T520 210" />
-          <rect x="150" y="60" width="180" height="120" />
-          <path d="M150 90h180M180 60v120" />
-          <circle cx="430" cy="250" r="46" />
-          <path d="M400 250h60M430 220v60" />
-        </g>
-      )}
-      {genre === 'mystery' && (
-        <g {...common}>
-          <rect x="70" y="60" width="150" height="110" />
-          <rect x="250" y="120" width="150" height="110" />
-          <rect x="180" y="220" width="150" height="110" />
-          <path d="M220 115L250 175M330 230L255 275" strokeDasharray="4 5" />
-          <circle cx="450" cy="90" r="34" />
-          <path d="M474 114l40 40" strokeWidth="1.6" />
-        </g>
-      )}
-      {genre === 'survival' && (
-        <g {...common}>
-          <path d="M20 200h80l30-120 50 260 44-190 40 130 34-80h238" strokeWidth="1.6" />
-          <path d="M20 300h520" strokeDasharray="3 8" />
-          <path d="M120 60v-30M240 40v-30M400 70v-30" />
-        </g>
-      )}
-      {genre === 'expedition' && (
-        <g {...common}>
-          <path
-            d="M30 330 L140 240 L120 140 L260 60 L370 190 L470 90 L540 150"
-            strokeDasharray="7 6"
-            strokeWidth="1.4"
-          />
-          <circle cx="140" cy="240" r="6" />
-          <circle cx="370" cy="190" r="6" />
-          <circle cx="540" cy="150" r="6" />
-          <path d="M60 60 L100 60 M80 40 L80 80" />
-          <path d="M20 320 Q160 300 300 330 T540 310" />
-        </g>
-      )}
-      {genre === 'politics' && (
-        <g {...common}>
-          <path d="M40 330h480" strokeWidth="1.6" />
-          <rect x="60" y="250" width="70" height="80" />
-          <rect x="160" y="170" width="70" height="160" />
-          <rect x="260" y="90" width="70" height="240" />
-          <rect x="360" y="200" width="70" height="130" />
-          <rect x="460" y="140" width="60" height="190" />
-        </g>
-      )}
-      {genre === 'crime' && (
-        <g {...common}>
-          <path d="M60 340V150l100-70 100 70v190" strokeWidth="1.4" />
-          <path d="M100 200h40M180 200h40M100 260h40M180 260h40" />
-          <path d="M330 340V110h170v230" />
-          <path d="M360 160h30M430 160h40M360 230h110M360 290h70" />
-          <circle cx="285" cy="60" r="18" />
-          <path d="M285 78v40" />
-        </g>
-      )}
-      {genre === 'war' && (
-        <g {...common}>
-          <path d="M40 330h480" />
-          <path d="M80 330V210l60-40 60 40v120" strokeWidth="1.4" />
-          <path d="M260 330V150h180v180" strokeWidth="1.4" />
-          <path d="M300 190h100M300 250h100" strokeDasharray="6 6" />
-          <path d="M470 330V240l40-30 40 30v90" />
-          <path d="M140 120v-60M140 60h70l-16 20 16 20h-70" />
-        </g>
-      )}
-    </svg>
-  );
 }
 
 /** Small period marks beside each world in the Profile's history. */

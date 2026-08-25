@@ -81,6 +81,14 @@ export const GENRES: Genre[] = [
   },
 ];
 
+/** The genres with hero photography, in the order the hero cycles them.
+ *
+ *  These three are the three stories the hero copy tells — the 1777 letter, the 1986
+ *  interrogation table, the 2028 generator — so the backdrop illustrates the paragraph beside
+ *  it rather than decorating it. Add a genre here only once assets/hero/<key>.png exists and
+ *  `npm run images` has been run; a key without an image would show an empty panel. */
+export const HERO_GENRES: GenreKey[] = ['history', 'crime', 'survival'];
+
 /** The tile that admits what does not exist yet, rather than implying everything does. */
 export const GENRES_IN_DEVELOPMENT =
   'Espionage. Courtroom & law. Heists. Disaster response. Exploration. Horror. First contact. Dynasties that span generations.';

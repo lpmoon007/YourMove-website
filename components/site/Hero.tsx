@@ -2,10 +2,16 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { GENRES } from '@/content/genres';
-import { HeroPanel } from './icons';
+import { GENRES, HERO_GENRES } from '@/content/genres';
 
 const INTERVAL_MS = 3400;
+
+/** Only the genres with photography behind them. */
+const PANELS = HERO_GENRES.map((key) => {
+  const genre = GENRES.find((g) => g.key === key);
+  if (!genre) throw new Error(`HERO_GENRES names ${key}, which is not a genre.`);
+  return genre;
+});
 
 /** The rotating genre panel behind the hero.
  *
@@ -29,7 +35,7 @@ export function Hero() {
 
   useEffect(() => {
     if (paused || stopped) return;
-    const id = window.setInterval(() => setIndex((i) => (i + 1) % GENRES.length), INTERVAL_MS);
+    const id = window.setInterval(() => setIndex((i) => (i + 1) % PANELS.length), INTERVAL_MS);
     return () => window.clearInterval(id);
   }, [paused, stopped]);
 
@@ -45,7 +51,7 @@ export function Hero() {
     setPaused(hovering.current || focused.current);
   }, []);
 
-  const active = GENRES[index];
+  const active = PANELS[index];
 
   return (
     <section
@@ -56,9 +62,23 @@ export function Hero() {
       onBlurCapture={() => hold('focus', false)}
     >
       <div className="hero-panels" aria-hidden="true">
-        {GENRES.map((g, i) => (
+        {PANELS.map((g, i) => (
           <div key={g.key} className="hero-panel" data-active={i === index}>
-            <HeroPanel genre={g.key} />
+            <picture>
+              <source
+                type="image/webp"
+                sizes="100vw"
+                srcSet={`/hero/${g.key}-1000.webp 1000w, /hero/${g.key}-1935.webp 1935w`}
+              />
+              <img
+                src={`/hero/${g.key}-1935.jpg`}
+                alt=""
+                decoding="async"
+                // The first panel is on screen before anything scrolls, so it is not lazy.
+                loading={i === 0 ? 'eager' : 'lazy'}
+                fetchPriority={i === 0 ? 'high' : 'low'}
+              />
+            </picture>
           </div>
         ))}
       </div>

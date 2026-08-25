@@ -443,40 +443,43 @@ p {
   position: absolute;
   inset: 0;
 }
+/* Full-bleed photography. Each image is composed with its subject on the right and its left
+   third close to black, which is where the headline and body copy sit. */
 .hero-panel {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0 8%;
   opacity: 0;
   transition: opacity 1.6s ease;
 }
 .hero-panel[data-active='true'] {
   opacity: 1;
 }
-.hero-panel svg {
-  /* Enough to read as a compass or a map, not enough to compete with the copy. */
-  opacity: 0.3;
-  max-width: 60vw;
-  height: auto;
+.hero-panel picture,
+.hero-panel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% center;
 }
-/* The scrim darkens behind the headline and body copy, on the left, and thins out over the
-   genre artwork on the right. The handoff had it the other way around — clear over the text,
-   near-solid over the drawing — which dimmed the artwork to roughly a percent of itself and
-   gave the text no help. */
+/* Two scrims, because a photograph needs more help than line art did.
+   The first is a horizontal wash that keeps the left column dark enough for body copy at any
+   viewport width; the second lifts the very bottom so the section edge does not end abruptly. */
 .hero-scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(
-    ellipse at 22% 45%,
-    rgba(19, 17, 16, 0.97),
-    rgba(19, 17, 16, 0.62) 62%,
-    rgba(19, 17, 16, 0.5) 100%
-  );
+  background:
+    linear-gradient(
+      to right,
+      rgba(19, 17, 16, 0.96) 0%,
+      rgba(19, 17, 16, 0.9) 30%,
+      rgba(19, 17, 16, 0.6) 58%,
+      rgba(19, 17, 16, 0.42) 100%
+    ),
+    linear-gradient(to bottom, rgba(19, 17, 16, 0.55) 0%, rgba(19, 17, 16, 0) 22%, rgba(19, 17, 16, 0.75) 100%);
 }
+
 .hero-inner {
   position: relative;
   z-index: 2;
@@ -1497,6 +1500,21 @@ p {
 @media (max-width: 900px) {
   :root {
     --pad: 28px;
+  }
+
+  /* A 21:9 photograph cropped into a portrait viewport stops being a scene and becomes a
+     smear behind the copy. Keep it as texture: darken almost uniformly, top to bottom,
+     since the text runs the full width here and a left-to-right wash protects nothing. */
+  .hero-scrim {
+    background: linear-gradient(
+      to bottom,
+      rgba(19, 17, 16, 0.88) 0%,
+      rgba(19, 17, 16, 0.92) 45%,
+      rgba(19, 17, 16, 0.97) 100%
+    );
+  }
+  .hero-panel img {
+    object-position: 64% center;
   }
   .nav {
     flex-wrap: wrap;
