@@ -457,15 +457,25 @@ p {
   opacity: 1;
 }
 .hero-panel svg {
-  opacity: 0.16;
+  /* Enough to read as a compass or a map, not enough to compete with the copy. */
+  opacity: 0.3;
   max-width: 60vw;
   height: auto;
 }
+/* The scrim darkens behind the headline and body copy, on the left, and thins out over the
+   genre artwork on the right. The handoff had it the other way around — clear over the text,
+   near-solid over the drawing — which dimmed the artwork to roughly a percent of itself and
+   gave the text no help. */
 .hero-scrim {
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(ellipse at 30% 40%, rgba(19, 17, 16, 0.2), rgba(19, 17, 16, 0.94) 70%);
+  background: radial-gradient(
+    ellipse at 22% 45%,
+    rgba(19, 17, 16, 0.97),
+    rgba(19, 17, 16, 0.62) 62%,
+    rgba(19, 17, 16, 0.5) 100%
+  );
 }
 .hero-inner {
   position: relative;
